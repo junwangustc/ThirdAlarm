@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/junwangustc/ThirdAlarm/lark"
 	"github.com/junwangustc/ThirdAlarm/slack"
 	"github.com/junwangustc/ThirdAlarm/sms"
 )
@@ -14,6 +15,7 @@ type Service struct {
 	Cfg          *Config
 	SlackService *slack.Service
 	SMSService   *sms.Service
+	LarkService  *lark.Service
 	UrlStatus    map[string]*URL
 	AlarmStatus  map[string]int
 	ExitChan     chan int
@@ -48,6 +50,7 @@ func (s *Service) Run() {
 						s.AlarmStatus[k] = 1
 						go s.SendSlack("存活监控异常", k+"监控连接失败", false, v.CareSlack)
 						go s.SendSMS(k+"监控连接失败", v.CareSMS)
+						go s.SendLark(k + "连接失败")
 						log.Println("SMS debug", v.CareSMS)
 
 					}
@@ -57,6 +60,7 @@ func (s *Service) Run() {
 						s.AlarmStatus[k] = -1
 						go s.SendSlack("存活监控恢复正常", k+"监控连接恢复正常", true, v.CareSlack)
 						go s.SendSMS(k+"监控连接恢复正常", v.CareSMS)
+						go s.SendLark(k + "恢复正常")
 						log.Println("SMS debug", v.CareSMS)
 					}
 
@@ -89,5 +93,7 @@ func (s *Service) SendSlack(msg, title string, status bool, emails []string) {
 }
 func (s *Service) SendSMS(msg string, smsNumer []string) {
 	s.SMSService.Send(smsNumer, msg)
-
+}
+func (s *Service) SendLark(msg string) {
+	s.LarkService.Send(msg)
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/junwangustc/ThirdAlarm/alert"
+	"github.com/junwangustc/ThirdAlarm/lark"
 	"github.com/junwangustc/ThirdAlarm/slack"
 	"github.com/junwangustc/ThirdAlarm/sms"
 	log "github.com/junwangustc/ustclog"
@@ -15,6 +16,7 @@ type Server struct {
 	SlackService *slack.Service
 	AlertService *alert.Service
 	SMSService   *sms.Service
+	LarkService  *lark.Service
 	services     []Service
 	cfg          *Config
 }
@@ -35,10 +37,19 @@ func (s *Server) appendSlackService(c slack.Config) {
 	}
 }
 
+func (s *Server) appendLarkService(c lark.Config) {
+	if c.Enabled {
+		larkService := lark.NewService(c)
+		s.LarkService = larkService
+		s.services = append(s.services, larkService)
+	}
+}
+
 func (s *Server) appendAlertService(c alert.Config) {
 	alertService := alert.NewService(c)
 	alertService.SlackService = s.SlackService
 	alertService.SMSService = s.SMSService
+	alertService.LarkService = s.LarkService
 	s.AlertService = alertService
 	s.services = append(s.services, alertService)
 }
@@ -78,6 +89,7 @@ func (s *Server) Run() (err error) {
 
 	s.appendSlackService(s.cfg.Slack)
 	s.appendSMSService(s.cfg.SMS)
+	s.appendLarkService(s.cfg.Lark)
 	s.appendAlertService(s.cfg.Alert)
 	if err = s.Open(); err != nil {
 		log.Println("[Error]open server fail", err)

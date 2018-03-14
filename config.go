@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/junwangustc/ThirdAlarm/alert"
+	"github.com/junwangustc/ThirdAlarm/lark"
 	"github.com/junwangustc/ThirdAlarm/slack"
 	"github.com/junwangustc/ThirdAlarm/sms"
 	"github.com/naoina/toml"
@@ -14,6 +15,7 @@ type Config struct {
 	Slack slack.Config `toml:"slack", json:"slack"`
 	Alert alert.Config `toml:"alert", json:"alert"`
 	SMS   sms.Config   `toml:"sms"`
+	Lark  lark.Config  `toml:"lark"`
 }
 
 func NewConfig() *Config {
@@ -21,6 +23,7 @@ func NewConfig() *Config {
 	c.Alert = alert.NewConfig()
 	c.Slack = slack.NewConfig()
 	c.SMS = sms.NewConfig()
+	c.Lark = lark.NewConfig()
 	return c
 }
 
